@@ -2,9 +2,10 @@
 
 interface ChatHeaderProps {
   onNewChat: () => void;
+  onOpenLog: () => void;
 }
 
-export default function ChatHeader({ onNewChat }: ChatHeaderProps) {
+export default function ChatHeader({ onNewChat, onOpenLog }: ChatHeaderProps) {
   return (
     <div className="bg-gradient-to-br from-[#1a5632] to-[#2d8a4e] text-white px-5 py-4 flex items-center gap-3 shadow-md">
       <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl shrink-0">
@@ -18,6 +19,12 @@ export default function ChatHeader({ onNewChat }: ChatHeaderProps) {
           米国ビザ申請に関するご質問にお答えします
         </div>
       </div>
+      <button
+        onClick={onOpenLog}
+        className="px-3.5 py-1.5 rounded-lg border border-white/40 bg-white/10 text-white text-xs cursor-pointer shrink-0 transition-colors hover:bg-white/20"
+      >
+        ログをコピー
+      </button>
       <button
         onClick={onNewChat}
         className="px-3.5 py-1.5 rounded-lg border border-white/40 bg-white/10 text-white text-xs cursor-pointer shrink-0 transition-colors hover:bg-white/20"
