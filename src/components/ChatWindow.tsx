@@ -194,6 +194,9 @@ export default function ChatWindow() {
     setInput("");
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
       const apiMessages = newMessages.map((m) => ({
         role: m.role,
@@ -203,6 +206,7 @@ export default function ChatWindow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: apiMessages }),
+        signal: controller.signal,
       });
       const data = await response.json();
 
@@ -213,6 +217,7 @@ export default function ChatWindow() {
             role: "assistant" as const,
             content:
               data.error || "エラーが発生しました。もう一度お試しください。",
+            isError: true,
           },
         ];
         persistCurrentConversation(errorMessages);
@@ -228,17 +233,21 @@ export default function ChatWindow() {
         },
       ];
       persistCurrentConversation(finalMessages);
-    } catch {
+    } catch (error) {
+      const isTimeout = error instanceof DOMException && error.name === "AbortError";
       const errorMessages = [
         ...newMessages,
         {
           role: "assistant" as const,
-          content:
-            "通信エラーが発生しました。しばらく待ってからもう一度お試しください。",
+          content: isTimeout
+            ? "回答の生成がタイムアウトしました。もう一度お試しください。"
+            : "通信エラーが発生しました。しばらく待ってからもう一度お試しください。",
+          isError: true,
         },
       ];
       persistCurrentConversation(errorMessages);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -348,9 +357,14 @@ export default function ChatWindow() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white px-5 py-3 rounded-[16px_16px_16px_4px] shadow-[0_1px_4px_rgba(0,0,0,0.08)] flex gap-1.5 items-center">
+            <div className="bg-white px-5 py-3 rounded-[16px_16px_16px_4px] shadow-[0_1px_4px_rgba(0,0,0,0.08)] flex gap-2 items-center">
+              <span className="flex gap-1">
+                <span className="w-2 h-2 bg-[#2d8a4e] rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-[#2d8a4e] rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-[#2d8a4e] rounded-full animate-bounce [animation-delay:300ms]" />
+              </span>
               <span className="text-[#2d8a4e] text-[13px]">
-                回答を生成中...
+                回答を生成中です...
               </span>
             </div>
           </div>
